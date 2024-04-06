@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">VideoGames DB</string>
+    <string name="savedGame">Juego guardado exitosamente</string>
+    <string name="hintTitulo">Título</string>
 </resources>
