@@ -2,13 +2,8 @@ package com.amaurypm.videogamesdb.ui
 
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.amaurypm.videogamesdb.R
@@ -16,7 +11,6 @@ import com.amaurypm.videogamesdb.application.VideoGamesDBApp
 import com.amaurypm.videogamesdb.data.GameRepository
 import com.amaurypm.videogamesdb.data.db.model.GameEntity
 import com.amaurypm.videogamesdb.databinding.ActivityMainBinding
-import com.amaurypm.videogamesdb.util.Constants
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 

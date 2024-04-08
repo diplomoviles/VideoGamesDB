@@ -2,12 +2,10 @@ package com.amaurypm.videogamesdb.ui
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.DialogInterface
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.Button
-import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.amaurypm.videogamesdb.R
@@ -15,7 +13,10 @@ import com.amaurypm.videogamesdb.application.VideoGamesDBApp
 import com.amaurypm.videogamesdb.data.GameRepository
 import com.amaurypm.videogamesdb.data.db.model.GameEntity
 import com.amaurypm.videogamesdb.databinding.GameDialogBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 class GameDialog(
@@ -63,13 +64,21 @@ class GameDialog(
                 }
                 try {
                     lifecycleScope.launch {
-                        repository.insertGame(game)
+
+                        val result = async{
+                            repository.insertGame(game)
+                        }
+
+                        result.await()
+
+                        withContext(Dispatchers.Main){
+                            message("Juego guardado exitosamente")
+
+                            updateUI()
+                        }
+
                     }
 
-                    message(getString(R.string.savedGame))
-
-
-                    updateUI()
                 }catch(e: IOException){
                     e.printStackTrace()
 
@@ -90,12 +99,18 @@ class GameDialog(
                 }
                 try {
                     lifecycleScope.launch {
-                        repository.updateGame(game)
+                        val result = async {
+                            repository.updateGame(game)
+                        }
+
+                        result.await()
+
+                        withContext(Dispatchers.Main){
+                            message("Juego actualizado exitosamente")
+                            updateUI()
+                        }
                     }
 
-                    message("Juego actualizado exitosamente")
-
-                    updateUI()
                 }catch(e: IOException) {
                     e.printStackTrace()
 
@@ -103,6 +118,8 @@ class GameDialog(
 
                 }
             }, {
+                //Acción borrar
+                val context = requireContext()
 
                 AlertDialog.Builder(requireContext())
                     .setTitle("Confirmación")
@@ -110,12 +127,21 @@ class GameDialog(
                     .setPositiveButton("Aceptar"){ _, _ ->
                         try {
                             lifecycleScope.launch {
-                                repository.deleteGame(game)
+
+                                val result = async {
+                                    repository.deleteGame(game)
+                                }
+
+                                result.await()
+
+                                withContext(Dispatchers.Main){
+                                    //message(context.getString(R.string.removedGame))
+                                    message("Juego borrado exitosamente")
+
+                                    updateUI()
+                                }
                             }
 
-                            message("Juego eliminado exitosamente")
-
-                            updateUI()
                         }catch(e: IOException) {
                             e.printStackTrace()
 
