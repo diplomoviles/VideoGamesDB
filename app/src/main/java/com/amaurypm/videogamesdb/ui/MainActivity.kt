@@ -1,5 +1,6 @@
 package com.amaurypm.videogamesdb.ui
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -14,6 +15,7 @@ import com.amaurypm.videogamesdb.application.VideoGamesDBApp
 import com.amaurypm.videogamesdb.data.GameRepository
 import com.amaurypm.videogamesdb.data.db.model.GameEntity
 import com.amaurypm.videogamesdb.databinding.ActivityMainBinding
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,6 +26,7 @@ class MainActivity : AppCompatActivity() {
 
     //Para el listado de juegos a leer en la bd
     private var games: MutableList<GameEntity> = mutableListOf()
+
     //Para el repositorio
     private lateinit var repository: GameRepository
 
@@ -44,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         repository = (application as VideoGamesDBApp).repository
 
         //Instanciamos el GameAdapter
-        gameAdapter = GameAdapter{ selectedGame ->
+        gameAdapter = GameAdapter { selectedGame ->
             //Click de un juego
 
             /*Toast.makeText(
@@ -54,9 +57,16 @@ class MainActivity : AppCompatActivity() {
             )
                 .show()*/
 
-            val dialog = GameDialog(newGame = false, game = selectedGame){
-                updateUI()
-            }
+            val dialog = GameDialog(
+                newGame = false,
+                game = selectedGame,
+                updateUI = {
+                    updateUI()
+                },
+                message = { text ->
+                    message(text)
+                }
+            )
 
             dialog.show(supportFragmentManager, "dialog2")
 
@@ -71,7 +81,7 @@ class MainActivity : AppCompatActivity() {
         updateUI()
     }
 
-    private fun updateUI(){
+    private fun updateUI() {
         lifecycleScope.launch {
             //Obtenemos todos los juegos
             games = repository.getAllGames()
@@ -85,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun click(view: View){
+    fun click(view: View) {
         /*val game = GameEntity(
             title = "Mario Kart 8",
             genre = "Carreras",
@@ -97,10 +107,14 @@ class MainActivity : AppCompatActivity() {
         updateUI()*/
 
         //Mostramos el diálogo
-        val dialog = GameDialog{
-            //Aquí va el cuerpo de la lambda
-            updateUI()
-        }
+        val dialog = GameDialog(
+            updateUI = {
+                updateUI()
+            },
+            message = { text ->
+                message(text)
+            }
+        )
         dialog.show(supportFragmentManager, "dialog1")
     }
 
@@ -126,4 +140,18 @@ class MainActivity : AppCompatActivity() {
             repository.insertGame(game)
         }
     }*/
+
+    private fun message(text: String) {
+        /*Toast.makeText(
+            this,
+            text,
+            Toast.LENGTH_SHORT
+        )
+            .show()*/
+        Snackbar.make(binding.main, text, Snackbar.LENGTH_SHORT)
+            .setTextColor(getColor(R.color.white))
+            .setBackgroundTint(getColor(R.color.my_red)) //#9E1734
+            //.setBackgroundTint(Color.parseColor("#9E1734"))
+            .show()
+    }
 }

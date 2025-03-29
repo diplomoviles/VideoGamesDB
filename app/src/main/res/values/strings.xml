@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">VideoGames DB</string>
+    <string name="update_button">Actualizar</string>
+    <string name="delete_button">Eliminar</string>
+    <string name="confirmation">Confirmación</string>
+    <string name="delete_confirmation">¿Realmente deseas eliminar el juego %1$s?</string>
+    <string name="game_deleted">Juego eliminado exitosamente</string>
+    <string name="ok">Aceptar</string>
 </resources>

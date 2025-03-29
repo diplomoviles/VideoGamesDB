@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
+import com.amaurypm.videogamesdb.R
 import com.amaurypm.videogamesdb.application.VideoGamesDBApp
 import com.amaurypm.videogamesdb.data.GameRepository
 import com.amaurypm.videogamesdb.data.db.model.GameEntity
@@ -25,8 +26,9 @@ class GameDialog(
         genre = "",
         developer = ""
     ),
-    private val updateUI: () -> Unit
-): DialogFragment() {
+    private val updateUI: () -> Unit,
+    private val message: (String) -> Unit
+) : DialogFragment() {
 
     //Para agregar viewbinding al fragment
     private var _binding: GameDialogBinding? = null
@@ -46,19 +48,22 @@ class GameDialog(
 
         _binding = GameDialogBinding.inflate(requireActivity().layoutInflater)
 
-        /*dialog = AlertDialog.Builder(requireContext()).setView(binding.root)
-            .setTitle("Juego")
-            .setPositiveButton("Guardar"){ _, _ ->
-                //Click listener del botón guardar
-                //Hacemos el insert
+        binding.apply {
+            tietTitle.setText(game.title)
+            tietGenre.setText(game.genre)
+            tietDeveloper.setText(game.developer)
+        }
 
+        dialog = if (newGame)
+            buildDialog("Guardar", "Cancelar", {
+                //Guardar
                 binding.apply {
                     game.title = tietTitle.text.toString()
                     game.genre = tietGenre.text.toString()
                     game.developer = tietDeveloper.text.toString()
                 }
 
-                try{
+                try {
 
                     lifecycleScope.launch {
 
@@ -68,55 +73,103 @@ class GameDialog(
 
                         result.await()
 
-                        Toast.makeText(
-                            requireContext(),
-                            "Juego guardado exitosamente",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        message("Juego guardado exitosamente")
 
                         updateUI()
 
                     }
 
-                }catch(e: IOException){
+                } catch (e: IOException) {
                     //Manejamos la excepción
                     e.printStackTrace()
-                    Toast.makeText(
-                        requireContext(),
-                        "Error al guardar el juego",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }catch (e: Exception){
+
+                    message("Error al guardar el juego")
+
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
-
-            }
-            .setNegativeButton("Cancelar"){ _, _ ->
-                //Click listener del botón cancelar
-
-            }
-            .create()*/
-
-        binding.apply {
-            tietTitle.setText(game.title)
-            tietGenre.setText(game.genre)
-            tietDeveloper.setText(game.developer)
-        }
-
-        dialog = if(newGame)
-            buildDialog("Guardar", "Cancelar", {
-                //Guardar
 
             }, {
                 //Cancelar
 
             })
         else
-            buildDialog("Actualizar", "Eliminar", {
+            buildDialog(getString(R.string.update_button), getString(R.string.delete_button), {
                 //Actualizar
+                binding.apply {
+                    game.title = tietTitle.text.toString()
+                    game.genre = tietGenre.text.toString()
+                    game.developer = tietDeveloper.text.toString()
+                }
+
+                try {
+
+                    lifecycleScope.launch {
+
+                        val result = async {
+                            repository.updateGame(game)
+                        }
+
+                        result.await()
+
+                        message("Juego actualizado exitosamente")
+
+
+                        updateUI()
+
+                    }
+
+                } catch (e: IOException) {
+                    //Manejamos la excepción
+                    e.printStackTrace()
+                    message("Error al actualizar el juego")
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
 
             }, {
                 //Eliminar
+
+                //Guardamos el contexto antes de la corrutina para que no se pierda
+                val context = requireContext()
+
+                //Diálogo para confirmar
+                AlertDialog.Builder(requireContext())
+                    .setTitle(getString(R.string.confirmation))
+                    .setMessage(getString(R.string.delete_confirmation, game.title))
+                    .setPositiveButton(getString(R.string.ok)) { _, _ ->
+                        try {
+                            lifecycleScope.launch {
+
+                                val result = async {
+                                    repository.deleteGame(game)
+                                }
+
+                                result.await()
+
+                                message(context.getString(R.string.game_deleted))
+
+                                updateUI()
+
+                            }
+
+                        } catch (e: IOException) {
+                            //Manejamos la excepción
+                            e.printStackTrace()
+
+                            message("Error al eliminar el juego")
+
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                    .setNegativeButton("Cancelar") { dialogInterface, _ ->
+                        dialogInterface.dismiss()
+                    }
+                    .create()
+                    .show()
+
 
             })
 
@@ -155,8 +208,8 @@ class GameDialog(
                 && binding.tietGenre.text.toString().isNotEmpty()
                 && binding.tietDeveloper.text.toString().isNotEmpty()
 
-    private fun setupTextWatcher(vararg textFields: TextInputEditText){
-        val textWatcher = object: TextWatcher{
+    private fun setupTextWatcher(vararg textFields: TextInputEditText) {
+        val textWatcher = object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
@@ -177,11 +230,11 @@ class GameDialog(
     ): Dialog =
         AlertDialog.Builder(requireContext()).setView(binding.root)
             .setTitle("Juego")
-            .setPositiveButton(btn1Text){ _, _ ->
+            .setPositiveButton(btn1Text) { _, _ ->
                 //Click para el botón positivo
                 positiveButton()
             }
-            .setNegativeButton(btn2Text){ _, _ ->
+            .setNegativeButton(btn2Text) { _, _ ->
                 //Click para el botón negativo
                 negativeButton()
             }
